@@ -16,6 +16,7 @@ using Restful.Api.Configurations;
 using Restful.Core.Services;
 using Restful.Core;
 using Restful.Core.Repositories;
+using Restful.Infrastructure.Repositories;
 
 namespace Restful.Api
 {
@@ -38,6 +39,7 @@ namespace Restful.Api
             services.AddAutoMapper(typeof(MappingProfile));
             services.AddScoped<ICountryRepository, CountryRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddScoped<ICityRepository, CityRepository>();
 
         }
 
@@ -48,6 +50,8 @@ namespace Restful.Api
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            //app.UseExceptionHandler(new CustomExceptionHandler());
 
             app.UseHttpsRedirection();
 

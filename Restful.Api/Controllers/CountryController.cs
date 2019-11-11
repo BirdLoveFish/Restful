@@ -9,10 +9,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Restful.Core.Models;
+using Microsoft.AspNetCore.Http;
 
 namespace Restful.Api.Controllers
 {
-    [Route("api/[controller]/{id?}")]
+    [Route("api/[controller]")]
     public class CountryController:ControllerBase
     {
         private readonly IMapper mapper;
@@ -30,10 +32,39 @@ namespace Restful.Api.Controllers
         [HttpGet]
         public async Task<IActionResult> Get()
         {
-            var countries = await countryRepository.GetCountriesAync();
+            var countries = await countryRepository.GetCountriesAsync();
 
             var countryResource = mapper.Map<List<CountryResource>>(countries);
             return Ok(countryResource);
+        }
+
+        [HttpGet("{id?}")]
+        public async Task<IActionResult> GetCountry(Guid id)
+        {
+            var country = await countryRepository.GetCountryById(id);
+            if(country == null)
+            {
+                return NotFound();
+            }
+
+            var countryResource = mapper.Map<CountryResource>(country);
+            return Ok(countryResource);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Post([FromBody]CountryAddViewModel countryAddViewModel)
+        {
+            var country = mapper.Map<Country>(countryAddViewModel);
+            
+            await countryRepository.AddCountryAsync(country);
+            if(!await unitOfWork.SaveAsync())
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Error when Add");
+            }
+
+            var countryResource = mapper.Map<CountryResource>(country);
+
+            return CreatedAtAction(nameof(GetCountry),new { id = countryResource.Id}, countryResource);
         }
     }
 }

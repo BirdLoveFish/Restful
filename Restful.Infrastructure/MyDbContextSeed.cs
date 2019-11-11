@@ -22,24 +22,87 @@ namespace Restful.Core
                     {
                         new Country
                         {
-                            Id = Guid.NewGuid(),
+                            Id = Guid.Parse("9b342c31-b597-40f3-af62-42fc661479c1"),
                             ChineseName = "中国",
                             EnglishName = "Chinese",
-                            Abbreviation = "CN"
+                            Abbreviation = "CN",
+                            Cities = new List<City>
+                            {
+                                new City
+                                {
+                                    Id = Guid.NewGuid(),
+                                    CountryId = Guid.Parse("9b342c31-b597-40f3-af62-42fc661479c1"),
+                                    Name = "上海",
+                                },
+                                new City
+                                {
+                                    Id = Guid.NewGuid(),
+                                    CountryId = Guid.Parse("9b342c31-b597-40f3-af62-42fc661479c1"),
+                                    Name = "北京",
+                                },
+                                new City
+                                {
+                                    Id = Guid.NewGuid(),
+                                    CountryId = Guid.Parse("9b342c31-b597-40f3-af62-42fc661479c1"),
+                                    Name = "广州",
+                                },
+                            }
                         },
                         new Country
                         {
-                            Id = Guid.NewGuid(),
+                            Id = Guid.Parse("9d5e6e8a-2501-4a2c-9473-464d33d99bd0"),
                             ChineseName = "美国",
                             EnglishName = "America",
-                            Abbreviation = "USA"
+                            Abbreviation = "USA",
+                            Cities = new List<City>
+                            {
+                                new City
+                                {
+                                    Id = Guid.NewGuid(),
+                                    CountryId = Guid.Parse("9d5e6e8a-2501-4a2c-9473-464d33d99bd0"),
+                                    Name = "洛杉矶",
+                                },
+                                new City
+                                {
+                                    Id = Guid.NewGuid(),
+                                    CountryId = Guid.Parse("9d5e6e8a-2501-4a2c-9473-464d33d99bd0"),
+                                    Name = "纽约",
+                                },
+                                new City
+                                {
+                                    Id = Guid.NewGuid(),
+                                    CountryId = Guid.Parse("9d5e6e8a-2501-4a2c-9473-464d33d99bd0"),
+                                    Name = "芝加哥",
+                                },
+                            }
                         },
                         new Country
                         {
-                            Id = Guid.NewGuid(),
+                            Id = Guid.Parse("80ee27db-301b-414c-abb2-0555b331dc00"),
                             ChineseName = "日本",
                             EnglishName = "Japanese",
-                            Abbreviation = "JP"
+                            Abbreviation = "JP",
+                            Cities = new List<City>
+                            {
+                                new City
+                                {
+                                    Id = Guid.NewGuid(),
+                                    CountryId = Guid.Parse("80ee27db-301b-414c-abb2-0555b331dc00"),
+                                    Name = "东京",
+                                },
+                                new City
+                                {
+                                    Id = Guid.NewGuid(),
+                                    CountryId = Guid.Parse("80ee27db-301b-414c-abb2-0555b331dc00"),
+                                    Name = "北海道",
+                                },
+                                new City
+                                {
+                                    Id = Guid.NewGuid(),
+                                    CountryId = Guid.Parse("80ee27db-301b-414c-abb2-0555b331dc00"),
+                                    Name = "名古屋",
+                                },
+                            }
                         },
                     });
                     context.SaveChanges();

@@ -1,16 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Linq;
+using System.Threading.Tasks;
 
-namespace Restful.Core.Models
+namespace Restful.Api.Resourses
 {
-    public class Country
+    public class CountryAddViewModel
     {
-        public Guid Id {get;set;}
         public string ChineseName { get; set; }
         public string EnglishName { get; set; }
         public string Abbreviation { get; set; }
-
-        public List<City> Cities { get; set; }
     }
 }

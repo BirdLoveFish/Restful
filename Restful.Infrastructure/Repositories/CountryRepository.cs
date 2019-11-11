@@ -18,9 +18,25 @@ namespace Restful.Core.Repositories
             this.context = context;
         }
 
-        public async Task<IEnumerable<Country>> GetCountriesAync()
+        public async Task AddCountryAsync(Country country)
+        {
+            country.Id = Guid.NewGuid();
+            await context.Countries.AddAsync(country);
+        }
+
+        public async Task<bool> CountryExists(Guid id)
+        {
+            return await context.Countries.AnyAsync(c => c.Id == id);
+        }
+
+        public async Task<IEnumerable<Country>> GetCountriesAsync()
         {
             return await context.Countries.ToListAsync();
+        }
+
+        public async Task<Country> GetCountryById(Guid id)
+        {
+            return await context.Countries.FindAsync(id);
         }
     }
 }
