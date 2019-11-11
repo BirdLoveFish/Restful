@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using Restful.Api.Resourses;
-using Restful.Core.Model;
+using Restful.Core.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;

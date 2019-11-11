@@ -1,11 +1,11 @@
 ﻿using Microsoft.Extensions.Logging;
-using Restful.Core.Model;
+using Restful.Core.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Restful.Infrastructure
+namespace Restful.Core
 {
     public class MyDbContextSeed
     {

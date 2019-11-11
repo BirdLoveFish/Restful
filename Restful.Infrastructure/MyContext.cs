@@ -1,10 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Restful.Core.Model;
+using Restful.Core.Models;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Restful.Infrastructure
+namespace Restful.Core
 {
     public class MyContext:DbContext
     {

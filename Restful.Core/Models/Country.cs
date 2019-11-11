@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Restful.Core.Model
+namespace Restful.Core.Models
 {
     public class Country
     {
