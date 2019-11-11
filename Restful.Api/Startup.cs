@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -11,6 +12,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Restful.Api.Configurations;
 using Restful.Infrastructure;
 
 namespace Restful.Api
@@ -31,6 +33,7 @@ namespace Restful.Api
             
             services.AddDbContext<MyContext>(options => 
                 options.UseSqlite("Data Source=Restful.db"));
+            services.AddAutoMapper(typeof(MappingProfile));
             
         }
 

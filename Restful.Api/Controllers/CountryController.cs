@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Restful.Api.Resourses;
 using Restful.Infrastructure;
 using System;
 using System.Collections.Generic;
@@ -12,16 +14,21 @@ namespace Restful.Api.Controllers
     public class CountryController:ControllerBase
     {
         private readonly MyContext context;
+        private readonly IMapper mapper;
 
-        public CountryController(MyContext context)
+        public CountryController(MyContext context, IMapper mapper)
         {
             this.context = context;
+            this.mapper = mapper;
         }
 
         [HttpGet]
         public async Task<IActionResult> Get()
         {
-            return Ok(await context.Countries.ToListAsync());
+            var countries = await context.Countries.ToListAsync();
+
+            var countryResource = mapper.Map<List<CountryResource>>(countries);
+            return Ok(countryResource);
         }
     }
 }
