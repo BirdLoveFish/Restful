@@ -18,6 +18,19 @@ namespace Restful.Infrastructure.Repositories
         {
             this.context = context;
         }
+
+        public async Task AddCityForCountry(Guid countryId, City city)
+        {
+            //city.Id = Guid.NewGuid();
+            city.CountryId = countryId;
+            await context.Cities.AddAsync(city);
+        }
+
+        public async Task DeleteCityForCountry(City city)
+        {
+            context.Cities.Remove(city);
+        }
+
         public async Task<IEnumerable<City>> GetCitiesAsync(Guid countryId)
         {
             return await context.Cities.Where(c=>c.CountryId == countryId).ToListAsync();
@@ -28,6 +41,11 @@ namespace Restful.Infrastructure.Repositories
             return await context.Cities
                 .Where(c=>c.CountryId == countryId & c.Id == cityId)
                 .SingleOrDefaultAsync();
+        }
+
+        public async Task UpdateCity(City city)
+        {
+            context.Cities.Update(city);
         }
     }
 }

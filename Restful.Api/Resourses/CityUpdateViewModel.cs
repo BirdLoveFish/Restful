@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Restful.Api.Resourses
 {
-    public class CityAddViewModel: CityViewModelBase
+    public class CityUpdateViewModel: CityViewModelBase
     {
         //public override string Name { get; set; }
         //public override string Description { get; set; }

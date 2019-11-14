@@ -17,11 +17,18 @@ using Restful.Core.Services;
 using Restful.Core;
 using Restful.Core.Repositories;
 using Restful.Infrastructure.Repositories;
+using FluentValidation.AspNetCore;
+using FluentValidation;
+using Restful.Api.Resourses;
+using AspNetCore.IServiceCollection.AddIUrlHelper;
+using Newtonsoft.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace Restful.Api
 {
     public class Startup
     {
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -32,27 +39,40 @@ namespace Restful.Api
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers();
-            
+
+            services.AddControllers()
+                .AddFluentValidation()
+                .AddNewtonsoftJson(options=>
+                {
+                    options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+                });
+
+            JsonConvert.DefaultSettings = () => new JsonSerializerSettings()
+            {
+                ContractResolver = new CamelCasePropertyNamesContractResolver(),
+            };
+
+            services.AddUrlHelper();
             services.AddDbContext<MyContext>(options => 
                 options.UseSqlite("Data Source=Restful.db"));
             services.AddAutoMapper(typeof(MappingProfile));
             services.AddScoped<ICountryRepository, CountryRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<ICityRepository, CityRepository>();
-
+            services.AddTransient<IValidator<CountryAddViewModel>, CountryAddViewModelValidator<CountryAddViewModel>>();
+            services.AddTransient<IValidator<CountryUpdateViewModel>, CountryAddViewModelValidator<CountryUpdateViewModel>>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env,
+            ILoggerFactory loggerFactory)
         {
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
-
-            //app.UseExceptionHandler(new CustomExceptionHandler());
-
+            app.UseExceptionHandler(new CustomExceptionHandler(loggerFactory));
+           
             app.UseHttpsRedirection();
 
             app.UseRouting();

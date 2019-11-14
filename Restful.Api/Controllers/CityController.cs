@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Restful.Api.Resourses;
 using Restful.Core;
+using Restful.Core.Models;
 using Restful.Core.Services;
 using System;
 using System.Collections.Generic;
@@ -10,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Restful.Api.Controllers
 {
-    [Route("api/countries/{countryId}/cities")]
+    [Route("api/country/{countryId}/city")]
     public class CityController:ControllerBase
     {
         private readonly IMapper mapper;
@@ -59,7 +61,116 @@ namespace Restful.Api.Controllers
             return Ok(cityResource);
         }
 
+        [HttpPost]
+        public async Task<IActionResult> AddCity(Guid countryId,[FromBody]CityAddViewModel city)
+        {
+            if(city == null)
+            {
+                return BadRequest();
+            }
 
+            if(!await countryRepository.CountryExists(countryId))
+            {
+                return NotFound();
+            }
+
+            var cityModel = mapper.Map<City>(city);
+            await cityRepository.AddCityForCountry(countryId, cityModel);
+            if(!await unitOfWork.SaveAsync())
+            {
+                return StatusCode(500, "server error");
+            }
+            var cityResource = mapper.Map<CityResource>(cityModel);
+            return CreatedAtAction(nameof(GetCity), 
+                new { countryId, cityId = cityModel.Id }, cityResource);
+
+        }
+
+        [HttpDelete("{cityId}")]
+        public async Task<IActionResult> DeleteCity(Guid countryId,Guid cityId)
+        {
+            if (!await countryRepository.CountryExists(countryId))
+            {
+                return NotFound();
+            }
+
+            var cityModel = await cityRepository.GetCityForCountry(countryId, cityId);
+            if(cityModel == null)
+            {
+                return NotFound();
+            }
+
+            await cityRepository.DeleteCityForCountry(cityModel);
+            if (!await unitOfWork.SaveAsync())
+            {
+                return StatusCode(500);
+            }
+
+            return NoContent();
+        }
+
+        [HttpPut("{cityId}")]
+        public async Task<IActionResult> UpdateCity(Guid countryId, Guid cityId,
+            [FromBody]CityUpdateViewModel city)
+        {
+            if(city == null)
+            {
+                return BadRequest();
+            }
+            if(!await countryRepository.CountryExists(countryId))
+            {
+                return NotFound();
+            }
+            var cityModel = await cityRepository.GetCityForCountry(countryId, cityId);
+            if (cityModel == null)
+            {
+                cityModel = mapper.Map<City>(city);
+                cityModel.Id = cityId;
+                await cityRepository.AddCityForCountry(countryId, cityModel);
+                if(!await unitOfWork.SaveAsync())
+                {
+                    return StatusCode(500);
+                }
+                //return NotFound();
+                return CreatedAtAction(nameof(GetCity), new { countryId, cityId }, cityModel);
+            }
+            mapper.Map(city, cityModel);
+            await cityRepository.UpdateCity(cityModel);
+            if(!await unitOfWork.SaveAsync())
+            {
+                return StatusCode(500);
+            }
+            return NoContent();
+        }
+
+        [HttpPatch("{cityId}")]
+        public async Task<IActionResult> UpdatePatialCity(Guid countryId, Guid cityId,
+            [FromBody]JsonPatchDocument<CityUpdateViewModel> patchDoc)
+        {
+            if (patchDoc == null)
+            {
+                return BadRequest();
+            }
+            if (!await countryRepository.CountryExists(countryId))
+            {
+                return NotFound();
+            }
+            var cityModel = await cityRepository.GetCityForCountry(countryId, cityId);
+            if (cityModel == null)
+            {
+                return NotFound();
+            }
+            var cityUpdate = mapper.Map<CityUpdateViewModel>(cityModel);
+            patchDoc.ApplyTo(cityUpdate);
+            mapper.Map(cityUpdate, cityModel);
+
+            await cityRepository.UpdateCity(cityModel);
+            if (!await unitOfWork.SaveAsync())
+            {
+                return StatusCode(500);
+            }
+            return NoContent();
+        }
 
     }
 }

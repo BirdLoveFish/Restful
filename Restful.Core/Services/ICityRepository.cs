@@ -11,5 +11,10 @@ namespace Restful.Core.Services
         Task<IEnumerable<City>> GetCitiesAsync(Guid countryId);
 
         Task<City> GetCityForCountry(Guid countryId, Guid cityId);
+
+        Task AddCityForCountry(Guid countryId, City city);
+        Task DeleteCityForCountry(City city);
+
+        Task UpdateCity(City city);
     }
 }

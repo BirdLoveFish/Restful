@@ -15,8 +15,11 @@ namespace Restful.Api.Configurations
             CreateMap<Country, CountryResource>();
             CreateMap<CountryResource, Country>();
 
-            CreateMap<Country, CountryResource>();
+            CreateMap<Country, CountryAddViewModel>();
             CreateMap<CountryAddViewModel, Country>();
+
+            CreateMap<Country, CountryUpdateViewModel>();
+            CreateMap<CountryUpdateViewModel, Country>();
 
             CreateMap<City, CityResource>();
             CreateMap<CityResource, City>();
@@ -24,6 +27,8 @@ namespace Restful.Api.Configurations
             CreateMap<City, CityAddViewModel>();
             CreateMap<CityAddViewModel, City>();
 
+            CreateMap<City, CityUpdateViewModel>();
+            CreateMap<CityUpdateViewModel, City>();
         }
     }
 }
