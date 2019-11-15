@@ -1,10 +1,11 @@
-﻿using System;
+﻿using Restful.Core.Services;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace Restful.Core.Models
 {
-    public class City
+    public class City:IEntity
     {
         public Guid Id { get; set; }
         public Guid CountryId { get; set; }

@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FluentValidation;
+using Restful.Infrastructure.Resourses;
 
-namespace Restful.Api.Resourses
+namespace Restful.Api.Validators
 {
-    public class CountryAddViewModelValidator<T>:AbstractValidator<T> where T : CountryViewModelBase
+    public class CountryAddViewModelValidator<T> : AbstractValidator<T> where T : CountryViewModelBase
     {
         public CountryAddViewModelValidator()
         {

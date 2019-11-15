@@ -5,9 +5,9 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Restful.Api.Resourses
+namespace Restful.Infrastructure.Resourses
 {
-    public class CountryAddViewModel:CountryViewModelBase
+    public class CountryAddViewModel : CountryViewModelBase
     {
         public override string ChineseName { get; set; }
         //public string EnglishName { get; set; }

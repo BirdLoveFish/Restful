@@ -1,10 +1,10 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
-using Restful.Api.Resourses;
 using Restful.Core;
 using Restful.Core.Models;
 using Restful.Core.Services;
+using Restful.Infrastructure.Resourses;
 using System;
 using System.Collections.Generic;
 using System.Linq;

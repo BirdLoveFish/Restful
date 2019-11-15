@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Restful.Api.Resourses;
 using Restful.Core.Services;
 using Restful.Core;
 using Restful.Core.Repositories;
@@ -17,6 +16,7 @@ using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.Extensions.Logging;
 using Restful.Api.Extensions;
 using Newtonsoft.Json;
+using Restful.Infrastructure.Resourses;
 
 namespace Restful.Api.Controllers
 {

@@ -19,10 +19,11 @@ using Restful.Core.Repositories;
 using Restful.Infrastructure.Repositories;
 using FluentValidation.AspNetCore;
 using FluentValidation;
-using Restful.Api.Resourses;
 using AspNetCore.IServiceCollection.AddIUrlHelper;
 using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json;
+using Restful.Infrastructure.Resourses;
+using Restful.Api.Validators;
 
 namespace Restful.Api
 {

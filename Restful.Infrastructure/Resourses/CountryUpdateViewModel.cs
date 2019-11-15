@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Restful.Api.Resourses
+namespace Restful.Infrastructure.Resourses
 {
-    public class CountryUpdateViewModel:CountryViewModelBase
+    public class CountryUpdateViewModel : CountryViewModelBase
     {
     }
 }
