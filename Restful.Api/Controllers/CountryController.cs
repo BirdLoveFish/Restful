@@ -17,6 +17,7 @@ using Microsoft.Extensions.Logging;
 using Restful.Api.Extensions;
 using Newtonsoft.Json;
 using Restful.Infrastructure.Resourses;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Restful.Api.Controllers
 {
@@ -39,35 +40,66 @@ namespace Restful.Api.Controllers
             this.logger = logger;
             this.urlHelper = urlHelper;
         }
-
+        [Authorize]
         [HttpGet(Name ="GetCountries")]
-        public async Task<IActionResult> Get(CountryResourceParameters parameters)
+        public async Task<IActionResult> Get(CountryResourceParameters parameters,
+            [FromHeader(Name = "Accept")]string mediaType)
         {
             var countries = await countryRepository.GetCountriesAsync(parameters);
             var countryResource = mapper.Map<List<CountryResource>>(countries);
 
-            var preLink = countries.HasPrevious
-                ? CreateCountryUri(parameters, PaginationResourceUriType.PreviousPage) : null;
-
-            var nextLink = countries.HasNext
-                ? CreateCountryUri(parameters, PaginationResourceUriType.NextPage) : null;
-
-            var meta = new
+            if(mediaType == "application/vnd.mycompany.heatoas+json")
             {
-                countries.TotalItemsCount,
-                countries.PaginationBase.PageIndex,
-                countries.PaginationBase.PageSize,
-                countries.PageCount,
-                PreviousLink = preLink,
-                NextLink = nextLink
-            };
-            Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(meta));
+                var meta = new
+                {
+                    countries.TotalItemsCount,
+                    countries.PaginationBase.PageIndex,
+                    countries.PaginationBase.PageSize,
+                    countries.PageCount,
+                };
+                Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(meta));
 
-            return Ok(countryResource);
+                var links = CreateCountriesLinks(parameters, countries.HasPrevious, countries.HasNext);
+                var shapedResource = countryResource.ToDynamicIEnumerable(parameters.Fields);
+                var shapedResourceWithLinks = shapedResource.Select(country =>
+                {
+                    var countryDit = country as IDictionary<string, object>;
+                    var countryLinks = CreateCountryLinks((Guid)countryDit["Id"], parameters.Fields);
+                    countryDit.Add("links", countryLinks);
+                    return countryDit;
+                });
+                var linkedCountries = new
+                {
+                    value = shapedResourceWithLinks,
+                    links,
+                };
+                return Ok(linkedCountries);
+            }
+            else
+            {
+                var perviousPagelink = countries.HasPrevious ?
+                    CreateCountryUri(parameters, PaginationResourceUriType.PreviousPage):null;
+
+                var nextPagelink = countries.HasNext ?
+                    CreateCountryUri(parameters, PaginationResourceUriType.NextPage) : null;
+
+                var meta = new
+                {
+                    countries.TotalItemsCount,
+                    countries.PaginationBase.PageIndex,
+                    countries.PaginationBase.PageSize,
+                    countries.PageCount,
+                    perviousPagelink,
+                    nextPagelink
+                };
+                Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(meta));
+                return Ok(countryResource.ToDynamicIEnumerable(parameters.Fields));
+            }
+            
         }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetCountry(Guid id)
+        [HttpGet("{id}",Name = "GetCountry")]
+        public async Task<IActionResult> GetCountry(Guid id,string fields)
         {
             var country = await countryRepository.GetCountryById(id);
             if(country == null)
@@ -76,7 +108,11 @@ namespace Restful.Api.Controllers
             }
 
             var countryResource = mapper.Map<CountryResource>(country);
-            return Ok(countryResource);
+
+            var links = CreateCountryLinks(id, fields);
+            var result = countryResource.ToDynamic(fields) as IDictionary<string, object>;
+            result.Add("links", links);
+            return Ok(result);
         }
 
         [HttpPost("{id}")]
@@ -91,7 +127,11 @@ namespace Restful.Api.Controllers
             return StatusCode(StatusCodes.Status409Conflict);
         }
 
-        [HttpPost]
+        [HttpPost(Name = "AddCountry")]
+        [RequestHeaderMatchingMediaType("Content-Type",
+            new[] { "application/vnd.mycompany.country.create+json" })]
+        [RequestHeaderMatchingMediaType("Content-Type",
+            new[] { "application/vnd.mycompany.country.display+json" })]
         public async Task<IActionResult> Post([FromBody]CountryAddViewModel country)
         {
             if (!ModelState.IsValid)
@@ -108,8 +148,38 @@ namespace Restful.Api.Controllers
             }
 
             var countryResource = mapper.Map<CountryResource>(countryModel);
+            var links = CreateCountryLinks(countryModel.Id);
+            var result = countryResource.ToDynamic() as IDictionary<string, object>;
+            result.Add("links", links);
 
-            return CreatedAtAction(nameof(GetCountry),new { id = countryResource.Id}, countryResource);
+            return CreatedAtAction(nameof(GetCountry),new { id = countryResource.Id}, result);
+        }
+
+        [HttpPost(Name = "AddCountry")]
+        [RequestHeaderMatchingMediaType("Content-Type",
+            new[] { "application/vnd.mycompany.country.create2+json" })]
+
+        public async Task<IActionResult> PostNew([FromBody]CountryAddViewModel country)
+        {
+            if (!ModelState.IsValid)
+            {
+                return new UnprocessableEntityObjectResultCus(ModelState);
+            }
+
+            var countryModel = mapper.Map<Country>(country);
+
+            await countryRepository.AddCountryAsync(countryModel);
+            if (!await unitOfWork.SaveAsync())
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Error when Add");
+            }
+
+            var countryResource = mapper.Map<CountryResource>(countryModel);
+            var links = CreateCountryLinks(countryModel.Id);
+            var result = countryResource.ToDynamic() as IDictionary<string, object>;
+            result.Add("links", links);
+
+            return CreatedAtAction(nameof(GetCountry), new { id = countryResource.Id }, result);
         }
 
         [HttpPost("collection")]
@@ -148,7 +218,7 @@ namespace Restful.Api.Controllers
             return Ok(countriesResource);
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("{id}",Name = "DeleteCountry")]
         public async Task<IActionResult> Delete(Guid id)
         {
             var country = await countryRepository.GetCountryById(id);
@@ -250,6 +320,7 @@ namespace Restful.Api.Controllers
                         pageIndex = --paginationBase.PageIndex,
                         pageSize = paginationBase.PageSize,
                         orderBy = paginationBase.OrderBy,
+                        fields = paginationBase.Fields
                     };
                     return urlHelper.Link("GetCountries", pre);
                 case PaginationResourceUriType.NextPage:
@@ -258,19 +329,72 @@ namespace Restful.Api.Controllers
                         pageIndex = ++paginationBase.PageIndex,
                         pageSize = paginationBase.PageSize,
                         orderBy = paginationBase.OrderBy,
+                        fields = paginationBase.Fields
                     };
                     return urlHelper.Link("GetCountries", next);
                 case PaginationResourceUriType.CurrentPage:
                     
                 default:
-                    var current = new PaginationBase()
+                    var current = new
                     {
-                        PageIndex = paginationBase.PageIndex,
-                        PageSize = paginationBase.PageSize,
-                        OrderBy = paginationBase.OrderBy,
+                        pageIndex = paginationBase.PageIndex,
+                        pageSize = paginationBase.PageSize,
+                        orderBy = paginationBase.OrderBy,
+                        fields = paginationBase.Fields
                     };
-                    return urlHelper.Link(nameof(Get), current);
+                    return urlHelper.Link("GetCountries", current);
             }
+        }
+
+        private IEnumerable<LinkResource> CreateCountryLinks(Guid id,string fields = null)
+        {
+            var links = new List<LinkResource>();
+            if (string.IsNullOrEmpty(fields))
+            {
+                links.Add(new LinkResource(
+                urlHelper.Link("GetCountry", new { id }),
+                "self", "GET"));
+            }
+            else
+            {
+                links.Add(new LinkResource(
+                urlHelper.Link("GetCountry", new { id , fields }),
+                "self", "GET"));
+            }
+
+            links.Add(new LinkResource(
+                urlHelper.Link("DeleteCountry", new { id }),
+                "delete_country", "DELETE"));
+
+            links.Add(new LinkResource(
+                urlHelper.Link("GetCitiesForCountry", new {countryId =  id }),
+                "get_cities", "GET"));
+
+            return links;
+        }
+
+        private IEnumerable<LinkResource> CreateCountriesLinks(CountryResourceParameters parameters,
+            bool hasPrevious, bool hasNext)
+        {
+            var links = new List<LinkResource>()
+            {
+                new LinkResource(
+                    CreateCountryUri(parameters,PaginationResourceUriType.CurrentPage),
+                    "self","GET"),
+            };
+            if (hasPrevious)
+            {
+                links.Add(
+                    new LinkResource(CreateCountryUri(parameters, PaginationResourceUriType.PreviousPage),
+                    "previous", "GET"));
+            }
+            if (hasNext)
+            {
+                links.Add(
+                    new LinkResource(CreateCountryUri(parameters, PaginationResourceUriType.NextPage),
+                    "next", "GET"));
+            }
+            return links;
         }
 
     }

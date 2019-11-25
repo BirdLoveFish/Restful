@@ -19,18 +19,20 @@ namespace Restful.Api.Controllers
         private readonly ICountryRepository countryRepository;
         private readonly IUnitOfWork unitOfWork;
         private readonly ICityRepository cityRepository;
+        private readonly IUrlHelper urlHelper;
 
         public CityController(IMapper mapper,
             ICountryRepository countryRepository, IUnitOfWork unitOfWork,
-            ICityRepository cityRepository)
+            ICityRepository cityRepository,IUrlHelper urlHelper)
         {
             this.mapper = mapper;
             this.countryRepository = countryRepository;
             this.unitOfWork = unitOfWork;
             this.cityRepository = cityRepository;
+            this.urlHelper = urlHelper;
         }
 
-        [HttpGet]
+        [HttpGet(Name = "GetCitiesForCountry")]
         public async Task<IActionResult> GetCitiesForCountry(Guid countryId)
         {
             if(!await countryRepository.CountryExists(countryId))
@@ -39,11 +41,15 @@ namespace Restful.Api.Controllers
             }
 
             var cities = await cityRepository.GetCitiesAsync(countryId);
-            var citiesResource = mapper.Map<List<CityResource>>(cities);
-            return Ok(citiesResource);
+            var citiesResource = mapper.Map<IEnumerable<CityResource>>(cities);
+            citiesResource = citiesResource.Select(CreateLinksFactory);
+            var wrapper = new LinkCollectionResourceWrapper<CityResource>(citiesResource);
+
+            return Ok(CreateLinksForCities(wrapper));
         }
 
-        [HttpGet("{cityId}")]
+
+        [HttpGet("{cityId}",Name = "GetCity")]
         public async Task<IActionResult> GetCity(Guid countryId, Guid cityId)
         {
             if (!await countryRepository.CountryExists(countryId))
@@ -58,10 +64,10 @@ namespace Restful.Api.Controllers
             }
 
             var cityResource = mapper.Map<CityResource>(city);
-            return Ok(cityResource);
+            return Ok(CreateLinksFactory(cityResource));
         }
 
-        [HttpPost]
+        [HttpPost(Name = "AddCity")]
         public async Task<IActionResult> AddCity(Guid countryId,[FromBody]CityAddViewModel city)
         {
             if(city == null)
@@ -82,11 +88,11 @@ namespace Restful.Api.Controllers
             }
             var cityResource = mapper.Map<CityResource>(cityModel);
             return CreatedAtAction(nameof(GetCity), 
-                new { countryId, cityId = cityModel.Id }, cityResource);
+                new { countryId, cityId = cityModel.Id }, CreateLinksFactory(cityResource));
 
         }
 
-        [HttpDelete("{cityId}")]
+        [HttpDelete("{cityId}",Name = "DeleteCity")]
         public async Task<IActionResult> DeleteCity(Guid countryId,Guid cityId)
         {
             if (!await countryRepository.CountryExists(countryId))
@@ -109,7 +115,7 @@ namespace Restful.Api.Controllers
             return NoContent();
         }
 
-        [HttpPut("{cityId}")]
+        [HttpPut("{cityId}",Name = "UpdateCity")]
         public async Task<IActionResult> UpdateCity(Guid countryId, Guid cityId,
             [FromBody]CityUpdateViewModel city)
         {
@@ -143,7 +149,7 @@ namespace Restful.Api.Controllers
             return NoContent();
         }
 
-        [HttpPatch("{cityId}")]
+        [HttpPatch("{cityId}",Name = "UpdatePatialCity")]
         public async Task<IActionResult> UpdatePatialCity(Guid countryId, Guid cityId,
             [FromBody]JsonPatchDocument<CityUpdateViewModel> patchDoc)
         {
@@ -170,6 +176,32 @@ namespace Restful.Api.Controllers
                 return StatusCode(500);
             }
             return NoContent();
+        }
+
+        private CityResource CreateLinksFactory(CityResource city)
+        {
+            city.Links.Add(new LinkResource(
+                urlHelper.Link("GetCity", new { city.CountryId, cityId = city.Id }),
+                "self","GET"));
+            city.Links.Add(new LinkResource(
+                urlHelper.Link("DeleteCity", new {city.CountryId, cityId = city.Id }),
+                "delete_city", "DELETE"));
+            city.Links.Add(new LinkResource(
+                urlHelper.Link("UpdateCity", new { city.CountryId, cityId = city.Id }),
+                "update_city", "PUT"));
+            city.Links.Add(new LinkResource(
+                urlHelper.Link("UpdatePatialCity", new { city.CountryId, cityId = city.Id }),
+                "update_patial_city", "PATCH"));
+            return city;
+        }
+
+        private LinkCollectionResourceWrapper<CityResource> CreateLinksForCities(
+            LinkCollectionResourceWrapper<CityResource> citiesWrapper)
+        {
+            citiesWrapper.Links.Add(
+                new LinkResource(urlHelper.Link("GetCitiesForCountry", null), 
+                "self", "GET"));
+            return citiesWrapper;
         }
 
     }

@@ -15,5 +15,7 @@ namespace Restful.Core.Models
         }
         public string OrderBy { get; set; } = "Id";
         private int _maxPageSize { get; set; } = 100;
+
+        public string Fields { get; set; }
     }
 }

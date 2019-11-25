@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Restful.Infrastructure.Resourses
 {
-    public class CityResource
+    public class CityResource:LinkResourceBase
     {
         public Guid Id { get; set; }
         public Guid CountryId { get; set; }

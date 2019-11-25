@@ -4,8 +4,8 @@ using System.Text;
 
 namespace Restful.Infrastructure
 {
-    public interface IPropertyMapping
+    public interface ITypeHelperService
     {
-        Dictionary<string,List<MappedProperty>> MappingDictionary { get; }
+        bool TypeHasProperties<T>(string fields);
     }
 }

@@ -25,8 +25,6 @@ namespace Restful.Infrastructure
                 new MappedProperty{Name = nameof(Country.EnglishName),Revert = false},
             },
         })
-        {
-
-        }
+        {}
     }
 }

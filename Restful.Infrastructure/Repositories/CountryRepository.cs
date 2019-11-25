@@ -8,16 +8,20 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using System.Linq.Dynamic.Core;
+using Restful.Infrastructure;
+using Restful.Infrastructure.Resourses;
 
 namespace Restful.Core.Repositories
 {
     public class CountryRepository : ICountryRepository
     {
         private readonly MyContext context;
+        private readonly IPropertyMappingContainer propertyMappingContainer;
 
-        public CountryRepository(MyContext context)
+        public CountryRepository(MyContext context,IPropertyMappingContainer propertyMappingContainer)
         {
             this.context = context;
+            this.propertyMappingContainer = propertyMappingContainer;
         }
 
         public async Task AddCountriesCollection(List<Country> countries)
@@ -56,21 +60,8 @@ namespace Restful.Core.Repositories
                 query = query.Where(a => a.ChineseName.Equals(parameters.ChineseName));
             }
 
-            var propertiesMap = new Dictionary<string, Expression<Func<Country, object>>>(StringComparer.OrdinalIgnoreCase)
-            {
-                {"Id",c=>c.Id },
-                {"ChineseName",c=>c.ChineseName },
-                {"EnglishName",c=>c.EnglishName },
-                {"Abbreviation",c=>c.Abbreviation },
-            };
-
-            if (!string.IsNullOrEmpty(parameters.OrderBy))
-            {
-                var isDesc = parameters.OrderBy.EndsWith(" desc");
-                var property = isDesc ? parameters.OrderBy.Split(' ')[0] : parameters.OrderBy;
-                query = query.OrderBy(property + (isDesc ? " desc" : " asc"));
-            }
-            
+            //query = query.ApplySort(parameters.OrderBy, new CountryMappingProperty());
+            query = query.ApplySort(parameters.OrderBy, propertyMappingContainer.Resolve<CountryResource,Country>());
             var count = await query.CountAsync();
             var list = await query
                 .Skip(parameters.PageIndex * parameters.PageSize)

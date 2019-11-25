@@ -24,6 +24,7 @@ using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json;
 using Restful.Infrastructure.Resourses;
 using Restful.Api.Validators;
+using Restful.Api.Extensions;
 
 namespace Restful.Api
 {
@@ -41,11 +42,24 @@ namespace Restful.Api
         public void ConfigureServices(IServiceCollection services)
         {
 
+
             services.AddControllers()
                 .AddFluentValidation()
                 .AddNewtonsoftJson(options=>
                 {
                     options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+                });
+
+
+
+
+            services.AddAuthentication("Bearer")
+                .AddJwtBearer("Bearer", options =>
+                {
+                    options.Authority = "http://localhost:5000";
+                    options.RequireHttpsMetadata = false;
+
+                    options.Audience = "api1";
                 });
 
             JsonConvert.DefaultSettings = () => new JsonSerializerSettings()
@@ -62,6 +76,8 @@ namespace Restful.Api
             services.AddScoped<ICityRepository, CityRepository>();
             services.AddTransient<IValidator<CountryAddViewModel>, CountryAddViewModelValidator<CountryAddViewModel>>();
             services.AddTransient<IValidator<CountryUpdateViewModel>, CountryAddViewModelValidator<CountryUpdateViewModel>>();
+            services.AddTestContainer();
+            services.AddPropertyMapping();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -74,10 +90,11 @@ namespace Restful.Api
             }
             app.UseExceptionHandler(new CustomExceptionHandler(loggerFactory));
            
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
 
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
